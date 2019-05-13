@@ -69,6 +69,18 @@ class App extends React.Component {
   }
 
 
+ createNote = (noteContent) => {
+  fetch("http://localhost:4000/api/v1/entries", {
+   method: "post",
+   headers: { "Content-Type": "application/json", "Accepts": "application/json" },
+   body: JSON.stringify({ content: noteContent })
+  })
+   .then(response => response.json())
+   .then(json => {
+    console.log(json)
+   })
+}
+
 
 
   render() {
@@ -79,6 +91,7 @@ class App extends React.Component {
     <button onClick={()=> {this.makeItalic()}}>Italicize</button>
     <button onClick={()=> {this.makeUnderlined()}}>Underline</button>
     <button onClick={()=> {this.makeHighlighted()}}>Highlight</button>
+    <button onClick={()=> {this.createNote(this.state.editorState)}}>Submit</button>
     <Editor
     onChange={(editorState) => {this.onChange(editorState)}}
     handleKeyCommand={this.handleKeyCommand}
