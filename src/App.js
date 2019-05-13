@@ -1,5 +1,5 @@
 import React from 'react';
-import {EditorState, RichUtils, convertToRaw } from "draft-js";
+import {EditorState, RichUtils, convertToRaw, convertFromRaw } from "draft-js";
 import Editor from 'draft-js-plugins-editor'
 import createEmojiPlugin from 'draft-js-emoji-plugin';
 import createHighlightPlugin from './highlightPlugin';
@@ -73,7 +73,7 @@ class App extends React.Component {
   fetch("http://localhost:4000/api/v1/entries", {
    method: "post",
    headers: { "Content-Type": "application/json", "Accepts": "application/json" },
-   body: JSON.stringify({ content: noteContent })
+   body: JSON.stringify({ content: JSON.stringify(noteContent) })
   })
    .then(response => response.json())
    .then(json => {
@@ -81,17 +81,40 @@ class App extends React.Component {
    })
 }
 
+getEntry= (entryId) => {
+ fetch("http://localhost:4000/api/v1/entries/" + `${entryId}`)
+  .then(response => response.json())
+  .then(json => {
+   this.setState({
+     editorState: EditorState.createWithContent(convertFromRaw(JSON.parse(json.content)))
+   })
+
+  })
+}
+
 
 
   render() {
-    const raw = convertToRaw(this.state.editorState.getCurrentContent())
+    const raw1 = convertToRaw(this.state.editorState.getCurrentContent())
+    let raw2;
+    let unraw
     return (
     <div>
     <button onClick={()=> {this.makeBold()}}>Bold</button>
     <button onClick={()=> {this.makeItalic()}}>Italicize</button>
     <button onClick={()=> {this.makeUnderlined()}}>Underline</button>
     <button onClick={()=> {this.makeHighlighted()}}>Highlight</button>
-    <button onClick={()=> {this.createNote(this.state.editorState)}}>Submit</button>
+    <button onClick={()=> {raw2=raw1}}>Set Equal 1</button>
+    <button onClick={()=> {console.log(raw2)}}>ConsoleLog Raw2</button>
+    <button onClick={()=> {console.log(convertFromRaw(raw2))}}>Console Log ConvertFromRaw(Raw2)</button>
+    <button onClick={()=> {unraw = convertFromRaw(raw2)}}>Set Equal 2</button>
+    <button onClick={()=> {console.log(unraw)}}>Console Log Unraw</button>
+    <button onClick={()=> {this.createNote(raw1)}}>Persist To Database</button>
+    <button onClick={()=> {this.getEntry(10)}}>FetchAndUpdateState</button>
+    <button onClick={()=> {this.setState({
+      editorState: EditorState.createWithContent(unraw)
+    })}}>UpdateState</button>
+
     <Editor
     onChange={(editorState) => {this.onChange(editorState)}}
     handleKeyCommand={this.handleKeyCommand}
